@@ -149,6 +149,11 @@
   <ItemGroup>
     <ClCompile Include="Schrage2.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Schrage_podzial\Schrage_podzial.vcxproj">
+      <Project>{e2e6d4bc-3cae-4ecb-ba3a-c23664a98c40}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
