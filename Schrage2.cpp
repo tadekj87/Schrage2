@@ -1,81 +1,103 @@
-﻿/// Schrage2.cpp : Ten plik zawiera funkcję „main”. W nim rozpoczyna się i kończy wykonywanie programu.
+﻿//Schrage2.cpp : Ten plik zawiera funkcję „main”.W nim rozpoczyna się i kończy wykonywanie programu.
 // Grupa: WT 13: Junak Tadeusz, Karol Kędzia
 
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
-#include <string>
+#include <queue>
+#include <vector>
 
 using namespace std;
 
+struct strukturaZadania
+{
+    int r,p,q; // termin dostępności r (punkt), czas wykonania p (okres), czas dostarczenia q
 
-int r[1000]; //termin dostępności (punkt)
-int p[1000]; //czas wykonania (okres)
-int pom;
+	strukturaZadania(int a, int b, int c) 
+	{
+		r = a; p = b; q = c;
+	}
+};
+
+struct kolejnoscR
+{
+	bool operator ()( const strukturaZadania& a, const strukturaZadania& b )
+	{
+		return a.r > b.r;
+	}
+};
+struct kolejnoscQ
+{
+	bool operator ()( const strukturaZadania& a, const strukturaZadania& b )
+	{
+		return a.q < b.q;
+	}
+};
+
+// zbiory G i N to kolejki priorytetowe
+
+priority_queue<strukturaZadania, vector<strukturaZadania>, kolejnoscQ> zbiorG; // zbiór G jest porządkowany rosnąco po większej wartości "q"
+priority_queue<strukturaZadania, vector<strukturaZadania>, kolejnoscR> zbiorN; // zbiór N jest porządkowany rosnąco po mniejszej wartości "r"
 
 int main()
 {
-	string linia;
-	fstream plik;
+    fstream plik;
+	plik.open("SCHRAGE2.dat",ios::in);
+    int rozmiar=0;
+    int r,p,q;
+    int t, k, Cmax;
 
-	int rozmiar = 0;
+	t = k = Cmax = 0;
 
-	plik.open("JACK4.DAT", ios::in);
+    plik >> rozmiar;
+ 
+	cout << "Kolejnosc: r p q" << endl;
 
-	if (plik.good() == true) {
+	strukturaZadania e(0, 0, 0); // zadanie pomocnicze "e"
 
-		// wczytanie rozmiaru (liczba wierszy->liczba zadań)
-		plik >> rozmiar;
+    for (int i=0; i<rozmiar; i++)
+	{
+        plik >> r;
+        plik >> p;
+        plik >> q;
+        cout << r << "\t" << p << "\t" << q << endl;
+        strukturaZadania zadanie(r,p,q); // każde zadanie ląduje 
+        zbiorN.push(zadanie); // w zbiorze N
+    }
 
-		int c[1000];
+	// algorytm
 
-		// wczytanie danych po kolei (w każdym wierszu jest para r i p)
-		for (int i = 0; i < rozmiar; i++) {
-			plik >> r[i];
-			plik >> p[i];
+    while(zbiorG.empty()==false || zbiorN.empty()==false)
+	{
+        while(zbiorN.empty()==false && zbiorN.top().r<= t)
+		{
+			e = zbiorN.top();
+            zbiorG.push(e); // zadanie "e" dodawane do zbioru G z "czubka" zbioru N
+            zbiorN.pop(); // ściągnięcie "e" z czubka N
+        }
+
+        if (zbiorG.empty() == true)
+		{
+                t = zbiorN.top().r; // "t" jest równe najmniejszej wartości zbioru N
+                continue;	// pomija się dalsze kroki i przechodzi do kolejnej pętli
 		}
 
-		// sortowanie bąbelkowe (po "r", a zamiana r i p, każda para r[i] i p[i] stanowi jeden element)	
-		for (int i = 0; i < rozmiar; i++) {
-			for (int j = 1; j < rozmiar; j++) {
-				if (r[j - 1] > r[j]) {
-					pom = r[j - 1];
-					r[j - 1] = r[j];
-					r[j] = pom;
-					pom = p[j - 1];
-					p[j - 1] = p[j];
-					p[j] = pom;
-				}
-			}
+        e = zbiorG.top(); // "e" jest ściągane z czubka "G"
+        zbiorG.pop();
 
-		}
-		c[0] = r[0];
+        k = k+1;
+        t=t+e.p;
+  
+		if (Cmax < t + e.q)
+			Cmax = t + e.q;
+    }
 
-		// wyswietlenie zawartosci (sprawdza się, czy zadania są posortowane od najmniejszej do największej liczby po r)
-		for (int i = 0; i < rozmiar; i++) {
-			cout << r[i] << " ";
-			cout << p[i] << endl;
-		}
+	// wyswietlenie rozmiaru i Cmax
 
-		cout << rozmiar << endl;
-
-
-		plik.close();
-
-		//algorytm - wyznaczenie Cmax (c to termin zakończenia)
-		for (int i = 0; i < rozmiar; i++) {
-			if (c[i] >= r[i]) { // bierze się max (c,r)
-				c[i + 1] = c[i] + p[i];
-			}
-			else {
-				c[i + 1] = r[i] + p[i];
-			}
-		}
-
-		cout << "C maksymalne to: " << c[rozmiar] << endl;
-	}
-
+	cout << endl << "Rozmiar to: "<< rozmiar << endl;
+    cout << "Cmax to: " << Cmax << endl;
 
 	system("PAUSE");
-	return(0);
+
+	return 0;
 }
+
